@@ -17,7 +17,7 @@ from course_discovery.apps.course_metadata.tests.factories import OrganizationFa
 from course_discovery.apps.ietf_language_tags.models import LanguageTag
 from course_discovery.apps.publisher.api.utils import serialize_seat_for_ecommerce_api
 from course_discovery.apps.publisher.api.v1.views import CourseRunViewSet
-from course_discovery.apps.publisher.models import Seat
+from course_discovery.apps.publisher.models import CourseMode
 from course_discovery.apps.publisher.tests.factories import CourseRunFactory, SeatFactory
 
 PUBLISHER_UPGRADE_DEADLINE_DAYS = random.randint(1, 21)
@@ -84,11 +84,11 @@ class CourseRunViewSetTests(APITestCase):
             'attribute_values': [
                 {
                     'name': 'certificate_type',
-                    'value': None if seat.type is Seat.AUDIT else seat.type,
+                    'value': None if seat.type is CourseMode.AUDIT else seat.type,
                 },
                 {
                     'name': 'id_verification_required',
-                    'value': seat.type in (Seat.VERIFIED, Seat.PROFESSIONAL),
+                    'value': seat.type in (CourseMode.VERIFIED, CourseMode.PROFESSIONAL),
                 }
             ]
         }
@@ -103,11 +103,11 @@ class CourseRunViewSetTests(APITestCase):
             'course_run': publisher_course_run,
             'currency': currency,
         }
-        audit_seat = SeatFactory(type=Seat.AUDIT, upgrade_deadline=None, **common_seat_kwargs)
+        audit_seat = SeatFactory(type=CourseMode.AUDIT, upgrade_deadline=None, **common_seat_kwargs)
         # The credit seat should NOT be published.
-        SeatFactory(type=Seat.CREDIT, **common_seat_kwargs)
-        professional_seat = SeatFactory(type=Seat.PROFESSIONAL, **common_seat_kwargs)
-        verified_seat = SeatFactory(type=Seat.VERIFIED, **common_seat_kwargs)
+        SeatFactory(type=CourseMode.CREDIT, **common_seat_kwargs)
+        professional_seat = SeatFactory(type=CourseMode.PROFESSIONAL, **common_seat_kwargs)
+        verified_seat = SeatFactory(type=CourseMode.VERIFIED, **common_seat_kwargs)
 
         partner = publisher_course_run.course.organizations.first().partner
         self._set_test_client_domain_and_login(partner)
@@ -202,7 +202,7 @@ class CourseRunViewSetTests(APITestCase):
     @mock.patch.object(Partner, 'access_token', return_value='JWT fake')
     def test_publish_seat_without_upgrade_deadline(self, mock_access_token):
         publisher_course_run = self._create_course_run_for_publication()
-        verified_seat = SeatFactory(type=Seat.VERIFIED, course_run=publisher_course_run, upgrade_deadline=None)
+        verified_seat = SeatFactory(type=CourseMode.VERIFIED, course_run=publisher_course_run, upgrade_deadline=None)
 
         partner = publisher_course_run.course.organizations.first().partner
         self._set_test_client_domain_and_login(partner)

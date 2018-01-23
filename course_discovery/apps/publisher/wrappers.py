@@ -6,7 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from course_discovery.apps.course_metadata.choices import CourseRunPacing
 from course_discovery.apps.publisher.choices import PublisherUserRole
-from course_discovery.apps.publisher.models import Seat
+from course_discovery.apps.publisher.models import CourseMode
 from course_discovery.apps.publisher_comments.models import Comments, CommentTypeChoices
 
 
@@ -47,14 +47,14 @@ class CourseRunWrapper(BaseWrapper):
 
     @property
     def credit_seat(self):
-        credit_seat = [seat for seat in self.wrapped_obj.seats.all() if seat.type == Seat.CREDIT]
+        credit_seat = [seat for seat in self.wrapped_obj.seats.all() if seat.type == CourseMode.CREDIT]
         if not credit_seat:
             return None
         return credit_seat[0]
 
     @property
     def non_credit_seats(self):
-        return [seat for seat in self.wrapped_obj.seats.all() if seat.type != Seat.CREDIT]
+        return [seat for seat in self.wrapped_obj.seats.all() if seat.type != CourseMode.CREDIT]
 
     @property
     def transcript_languages(self):
@@ -66,21 +66,21 @@ class CourseRunWrapper(BaseWrapper):
 
     @property
     def seat_price(self):
-        seat = self.wrapped_obj.seats.filter(type__in=[Seat.VERIFIED, Seat.PROFESSIONAL, Seat.CREDIT]).first()
+        seat = self.wrapped_obj.seats.filter(type__in=[CourseMode.VERIFIED, CourseMode.PROFESSIONAL, CourseMode.CREDIT]).first()
         if not seat:
             return None
         return seat.price
 
     @property
     def credit_seat_price(self):
-        seat = self.wrapped_obj.seats.filter(type=Seat.CREDIT).first()
+        seat = self.wrapped_obj.seats.filter(type=CourseMode.CREDIT).first()
         if not seat:
             return None
         return seat.credit_price
 
     @property
     def verified_seat_expiry(self):
-        seat = self.wrapped_obj.seats.filter(type=Seat.VERIFIED).first()
+        seat = self.wrapped_obj.seats.filter(type=CourseMode.VERIFIED).first()
         if not seat:
             return None
         return seat.upgrade_deadline
@@ -132,15 +132,15 @@ class CourseRunWrapper(BaseWrapper):
     @property
     def course_type(self):
         seats_types = [seat.type for seat in self.wrapped_obj.seats.all()]
-        if [Seat.AUDIT] == seats_types:
-            return Seat.AUDIT
-        if Seat.CREDIT in seats_types:
-            return Seat.CREDIT
-        if Seat.VERIFIED in seats_types:
-            return Seat.VERIFIED
-        if Seat.PROFESSIONAL in seats_types:
-            return Seat.PROFESSIONAL
-        return Seat.AUDIT
+        if [CourseMode.AUDIT] == seats_types:
+            return CourseMode.AUDIT
+        if CourseMode.CREDIT in seats_types:
+            return CourseMode.CREDIT
+        if CourseMode.VERIFIED in seats_types:
+            return CourseMode.VERIFIED
+        if CourseMode.PROFESSIONAL in seats_types:
+            return CourseMode.PROFESSIONAL
+        return CourseMode.AUDIT
 
     @property
     def is_in_preview_review(self):

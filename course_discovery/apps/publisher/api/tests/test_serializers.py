@@ -15,7 +15,7 @@ from course_discovery.apps.publisher.api.serializers import (CourseRevisionSeria
                                                              CourseRunStateSerializer, CourseStateSerializer,
                                                              CourseUserRoleSerializer, GroupUserSerializer)
 from course_discovery.apps.publisher.choices import CourseRunStateChoices, CourseStateChoices, PublisherUserRole
-from course_discovery.apps.publisher.models import CourseRun, CourseState, Seat
+from course_discovery.apps.publisher.models import CourseMode, CourseRun, CourseState
 from course_discovery.apps.publisher.tests.factories import (CourseFactory, CourseRunFactory, CourseRunStateFactory,
                                                              CourseStateFactory, CourseUserRoleFactory,
                                                              OrganizationExtensionFactory, SeatFactory)
@@ -301,7 +301,7 @@ class CourseRunStateSerializerTests(SiteMixin, TestCase):
         self.request.user = self.user
         CourseStateFactory(name=CourseStateChoices.Approved, course=self.course_run.course)
 
-        SeatFactory(course_run=self.course_run, type=Seat.AUDIT)
+        SeatFactory(course_run=self.course_run, type=CourseMode.AUDIT)
         language_tag = LanguageTag(code='te-st', name='Test Language')
         language_tag.save()
         self.course_run.transcript_languages.add(language_tag)

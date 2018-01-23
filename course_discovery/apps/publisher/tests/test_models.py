@@ -16,7 +16,7 @@ from course_discovery.apps.course_metadata.tests.factories import OrganizationFa
 from course_discovery.apps.ietf_language_tags.models import LanguageTag
 from course_discovery.apps.publisher.choices import CourseRunStateChoices, CourseStateChoices, PublisherUserRole
 from course_discovery.apps.publisher.mixins import check_course_organization_permission
-from course_discovery.apps.publisher.models import CourseUserRole, OrganizationExtension, OrganizationUserRole, Seat
+from course_discovery.apps.publisher.models import CourseMode, CourseUserRole, OrganizationExtension, OrganizationUserRole
 from course_discovery.apps.publisher.tests import factories
 
 
@@ -126,8 +126,8 @@ class CourseRunTests(TestCase):
 
     def test_has_valid_seats(self):
         """ Verify that property returns True if seats are valid. """
-        factories.SeatFactory(course_run=self.course_run, type=Seat.AUDIT, price=0)
-        invalid_seat = factories.SeatFactory(course_run=self.course_run, type=Seat.VERIFIED, price=0)
+        factories.SeatFactory(course_run=self.course_run, type=CourseMode.AUDIT, price=0)
+        invalid_seat = factories.SeatFactory(course_run=self.course_run, type=CourseMode.VERIFIED, price=0)
         self.assertFalse(self.course_run.has_valid_seats)
 
         invalid_seat.price = 200
@@ -135,7 +135,7 @@ class CourseRunTests(TestCase):
 
         self.assertTrue(self.course_run.has_valid_seats)
 
-        credit_seat = factories.SeatFactory(course_run=self.course_run, type=Seat.CREDIT, price=0, credit_price=0)
+        credit_seat = factories.SeatFactory(course_run=self.course_run, type=CourseMode.CREDIT, price=0, credit_price=0)
         self.assertFalse(self.course_run.has_valid_seats)
 
         credit_seat.price = 200
@@ -364,7 +364,7 @@ class TestSeatModel:
         assert str(seat) == '{course}: {type}'.format(course=seat.course_run.course.title, type=seat.type)
 
     @pytest.mark.parametrize(
-        'seat_type', [choice[0] for choice in Seat.SEAT_TYPE_CHOICES if choice[0] != Seat.VERIFIED])
+        'seat_type', [x for x in CourseMode.ALL_MODES if x != CourseMode.VERIFIED])
     def test_calculated_upgrade_deadline_with_nonverified_seat(self, seat_type):
         seat = factories.SeatFactory(type=seat_type)
         assert seat.calculated_upgrade_deadline is None
@@ -372,12 +372,12 @@ class TestSeatModel:
     def test_calculated_upgrade_deadline_with_verified_seat(self, settings):
         settings.PUBLISHER_UPGRADE_DEADLINE_DAYS = random.randint(1, 21)
         now = datetime.datetime.utcnow()
-        seat = factories.SeatFactory(type=Seat.VERIFIED, upgrade_deadline=None, course_run__end=now)
+        seat = factories.SeatFactory(type=CourseMode.VERIFIED, upgrade_deadline=None, course_run__end=now)
         expected = now - datetime.timedelta(days=settings.PUBLISHER_UPGRADE_DEADLINE_DAYS)
         expected = expected.replace(hour=23, minute=59, second=59, microsecond=99999)
         assert seat.calculated_upgrade_deadline == expected
 
-        seat = factories.SeatFactory(type=Seat.VERIFIED)
+        seat = factories.SeatFactory(type=CourseMode.VERIFIED)
         assert seat.calculated_upgrade_deadline is not None
         assert seat.calculated_upgrade_deadline == seat.upgrade_deadline
 
@@ -622,7 +622,7 @@ class CourseRunStateTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super(CourseRunStateTests, cls).setUpClass()
-        cls.seat = factories.SeatFactory(type=Seat.VERIFIED, price=100)
+        cls.seat = factories.SeatFactory(type=CourseMode.VERIFIED, price=100)
         cls.course_run_state = factories.CourseRunStateFactory(
             course_run=cls.seat.course_run, name=CourseRunStateChoices.Draft
         )

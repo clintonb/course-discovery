@@ -2,7 +2,7 @@ import pytest
 
 from course_discovery.apps.core.utils import serialize_datetime
 from course_discovery.apps.publisher.api.utils import serialize_seat_for_ecommerce_api
-from course_discovery.apps.publisher.models import Seat
+from course_discovery.apps.publisher.models import CourseMode
 from course_discovery.apps.publisher.tests.factories import SeatFactory
 
 
@@ -15,7 +15,7 @@ class TestSerializeSeatForEcommerceApi:
         assert actual['product_class'] == 'Seat'
 
     def test_serialize_seat_for_ecommerce_api_with_audit_seat(self):
-        seat = SeatFactory(type=Seat.AUDIT)
+        seat = SeatFactory(type=CourseMode.AUDIT)
         actual = serialize_seat_for_ecommerce_api(seat)
         expected = {
             'expires': serialize_datetime(seat.calculated_upgrade_deadline),
@@ -35,7 +35,7 @@ class TestSerializeSeatForEcommerceApi:
 
         assert actual == expected
 
-    @pytest.mark.parametrize('seat_type', (Seat.VERIFIED, Seat.PROFESSIONAL))
+    @pytest.mark.parametrize('seat_type', (CourseMode.VERIFIED, CourseMode.PROFESSIONAL))
     def test_serialize_seat_for_ecommerce_api_with_id_verification(self, seat_type):
         seat = SeatFactory(type=seat_type)
         actual = serialize_seat_for_ecommerce_api(seat)

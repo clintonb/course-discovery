@@ -13,7 +13,7 @@ from course_discovery.apps.course_metadata.models import CourseRun as DiscoveryC
 from course_discovery.apps.course_metadata.models import Seat as DiscoverySeat
 from course_discovery.apps.course_metadata.models import Course, Video
 from course_discovery.apps.publisher.api.utils import serialize_seat_for_ecommerce_api
-from course_discovery.apps.publisher.models import CourseRun, Seat
+from course_discovery.apps.publisher.models import CourseMode, CourseRun
 from course_discovery.apps.publisher.studio_api_utils import StudioAPI
 
 logger = logging.getLogger(__name__)
@@ -78,7 +78,7 @@ class CourseRunViewSet(viewsets.GenericViewSet):
             'create_or_activate_enrollment_code': False,
             # NOTE (CCB): We only order here to aid testing. The E-Commerce API does NOT care about ordering.
             'products': [serialize_seat_for_ecommerce_api(seat) for seat in
-                         course_run.seats.exclude(type=Seat.CREDIT).order_by('created')],
+                         course_run.seats.exclude(type=CourseMode.CREDIT).order_by('created')],
         }
 
         try:
@@ -140,7 +140,7 @@ class CourseRunViewSet(viewsets.GenericViewSet):
         discovery_course_run.transcript_languages.add(*course_run.transcript_languages.all())
         discovery_course_run.staff.add(*course_run.staff.all())
 
-        for seat in course_run.seats.exclude(type=Seat.CREDIT):
+        for seat in course_run.seats.exclude(type=CourseMode.CREDIT):
             DiscoverySeat.objects.update_or_create(
                 course_run=discovery_course_run,
                 type=seat.type,

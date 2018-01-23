@@ -1,5 +1,5 @@
 from course_discovery.apps.core.utils import serialize_datetime
-from course_discovery.apps.publisher.models import Seat
+from course_discovery.apps.publisher.models import CourseMode
 
 
 def serialize_seat_for_ecommerce_api(seat):
@@ -10,11 +10,11 @@ def serialize_seat_for_ecommerce_api(seat):
         'attribute_values': [
             {
                 'name': 'certificate_type',
-                'value': '' if seat.type == Seat.AUDIT else seat.type,
+                'value': '' if seat.type == CourseMode.AUDIT else seat.type,
             },
             {
                 'name': 'id_verification_required',
-                'value': seat.type in (Seat.VERIFIED, Seat.PROFESSIONAL),
+                'value': seat.type in (CourseMode.VERIFIED, CourseMode.PROFESSIONAL),
             }
         ]
     }

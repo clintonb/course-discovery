@@ -22,8 +22,8 @@ from course_discovery.apps.ietf_language_tags.models import LanguageTag
 from course_discovery.apps.publisher.api import views
 from course_discovery.apps.publisher.choices import CourseRunStateChoices, CourseStateChoices, PublisherUserRole
 from course_discovery.apps.publisher.constants import ADMIN_GROUP_NAME, INTERNAL_USER_GROUP_NAME
-from course_discovery.apps.publisher.models import (Course, CourseRun, CourseRunState, CourseState,
-                                                    OrganizationExtension, Seat)
+from course_discovery.apps.publisher.models import (Course, CourseMode, CourseRun, CourseRunState, CourseState,
+                                                    OrganizationExtension)
 from course_discovery.apps.publisher.tests import JSON_CONTENT_TYPE, factories
 
 
@@ -591,7 +591,7 @@ class ChangeCourseRunStateViewTests(SiteMixin, TestCase):
 
     def setUp(self):
         super(ChangeCourseRunStateViewTests, self).setUp()
-        self.seat = factories.SeatFactory(type=Seat.VERIFIED, price=2)
+        self.seat = factories.SeatFactory(type=CourseMode.VERIFIED, price=2)
         self.course_run = self.seat.course_run
 
         self.run_state = factories.CourseRunStateFactory(name=CourseRunStateChoices.Draft, course_run=self.course_run)

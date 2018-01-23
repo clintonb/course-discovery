@@ -37,7 +37,7 @@ from course_discovery.apps.publisher.constants import (
     ADMIN_GROUP_NAME, INTERNAL_USER_GROUP_NAME, PROJECT_COORDINATOR_GROUP_NAME, REVIEWER_GROUP_NAME
 )
 from course_discovery.apps.publisher.models import (
-    Course, CourseRun, CourseRunState, CourseState, OrganizationExtension, Seat
+    Course, CourseMode, CourseRun, CourseRunState, CourseState, OrganizationExtension, Seat
 )
 from course_discovery.apps.publisher.tests import factories
 from course_discovery.apps.publisher.tests.utils import create_non_staff_user_and_login
@@ -395,11 +395,11 @@ class CreateCourseRunViewTests(SiteMixin, TestCase):
 
         new_price = 450
         post_data = self.course_run_dict
-        seat = factories.SeatFactory(course_run=self.course_run, type=Seat.HONOR, price=0)
+        seat = factories.SeatFactory(course_run=self.course_run, type=CourseMode.HONOR, price=0)
         post_data.update(**model_to_dict(seat))
         post_data.update(
             {
-                'type': Seat.VERIFIED,
+                'type': CourseMode.VERIFIED,
                 'price': new_price
             }
         )
@@ -419,7 +419,7 @@ class CreateCourseRunViewTests(SiteMixin, TestCase):
 
         # Verify that new seat and new course run are unique
         self.assertNotEqual(new_seat.type, seat.type)
-        self.assertEqual(new_seat.type, Seat.VERIFIED)
+        self.assertEqual(new_seat.type, CourseMode.VERIFIED)
         self.assertNotEqual(new_seat.price, seat.price)
         self.assertEqual(new_seat.price, new_price)
         self.assertNotEqual(new_seat.course_run, self.course_run)
@@ -438,11 +438,11 @@ class CreateCourseRunViewTests(SiteMixin, TestCase):
         self.assertEqual(self.course.course_team_admin, self.user)
 
         post_data = self.course_run_dict
-        seat = factories.SeatFactory(course_run=self.course_run, type=Seat.HONOR, price=0)
+        seat = factories.SeatFactory(course_run=self.course_run, type=CourseMode.HONOR, price=0)
         post_data.update(**model_to_dict(seat))
         post_data.update(
             {
-                'type': Seat.VERIFIED,
+                'type': CourseMode.VERIFIED,
                 'price': 0
             }
         )
@@ -469,7 +469,7 @@ class CreateCourseRunViewTests(SiteMixin, TestCase):
         Verify that existing course run and seat data auto populated on new course run form.
         """
         latest_run = self.course.course_runs.latest('created')
-        factories.SeatFactory(course_run=latest_run, type=Seat.VERIFIED, price=550.0)
+        factories.SeatFactory(course_run=latest_run, type=CourseMode.VERIFIED, price=550.0)
         latest_seat = latest_run.seats.latest('created')
         response = self.client.get(self.create_course_run_url_new)
         response_content = BeautifulSoup(response.content)
@@ -490,11 +490,11 @@ class CreateCourseRunViewTests(SiteMixin, TestCase):
     def test_credit_type_without_price(self):
         """ Verify that without credit price course-run cannot be created with credit seat type. """
         post_data = self.course_run_dict
-        seat = factories.SeatFactory(course_run=self.course_run, type=Seat.AUDIT, price=0, credit_price=0)
+        seat = factories.SeatFactory(course_run=self.course_run, type=CourseMode.AUDIT, price=0, credit_price=0)
         post_data.update(**model_to_dict(seat))
         post_data.update(
             {
-                'type': Seat.CREDIT,
+                'type': CourseMode.CREDIT,
                 'price': 450
             }
         )
@@ -510,11 +510,11 @@ class CreateCourseRunViewTests(SiteMixin, TestCase):
         price = 450
         credit_price = 350
         post_data = self.course_run_dict
-        seat = factories.SeatFactory(course_run=self.course_run, type=Seat.AUDIT, price=0, credit_price=0)
+        seat = factories.SeatFactory(course_run=self.course_run, type=CourseMode.AUDIT, price=0, credit_price=0)
         post_data.update(**model_to_dict(seat))
         post_data.update(
             {
-                'type': Seat.CREDIT,
+                'type': CourseMode.CREDIT,
                 'price': price,
                 'credit_price': credit_price
             }
@@ -534,7 +534,7 @@ class CreateCourseRunViewTests(SiteMixin, TestCase):
         )
 
         # Verify that new seat and new course run are unique
-        self.assertEqual(new_seat.type, Seat.CREDIT)
+        self.assertEqual(new_seat.type, CourseMode.CREDIT)
         self.assertEqual(new_seat.price, price)
         self.assertEqual(new_seat.credit_price, credit_price)
 
@@ -577,7 +577,7 @@ class CourseRunDetailTests(SiteMixin, TestCase):
                                                      lms_course_id='course-v1:edX+DemoX+Demo_Course')
         self.course = self.course_run.course
 
-        self._generate_seats([Seat.AUDIT, Seat.HONOR, Seat.VERIFIED, Seat.PROFESSIONAL])
+        self._generate_seats([CourseMode.AUDIT, CourseMode.HONOR, CourseMode.VERIFIED, CourseMode.PROFESSIONAL])
         self._generate_credit_seat()
         self.page_url = reverse('publisher:publisher_course_run_detail', args=[self.course_run.id])
         self.wrapped_course_run = CourseRunWrapper(self.course_run)
@@ -1020,7 +1020,7 @@ class CourseRunDetailTests(SiteMixin, TestCase):
         self.course_run.course_run_state.name = CourseRunStateChoices.Draft
         self.course_run.course_run_state.save()
 
-        factories.SeatFactory(course_run=self.course_run, type=Seat.VERIFIED, price=2)
+        factories.SeatFactory(course_run=self.course_run, type=CourseMode.VERIFIED, price=2)
         language_tag = LanguageTag(code='te-st', name='Test Language')
         language_tag.save()
         self.course_run.transcript_languages.add(language_tag)
@@ -2813,7 +2813,7 @@ class CourseRunEditViewTests(SiteMixin, TestCase):
 
         self.course_run = factories.CourseRunFactory(course__organizations=[self.organization_extension.organization])
         self.course = self.course_run.course
-        self.seat = factories.SeatFactory(course_run=self.course_run, type=Seat.VERIFIED, price=2)
+        self.seat = factories.SeatFactory(course_run=self.course_run, type=CourseMode.VERIFIED, price=2)
 
         self.client.login(username=self.user.username, password=USER_PASSWORD)
         current_datetime = datetime.now(timezone('US/Central'))
@@ -2863,7 +2863,7 @@ class CourseRunEditViewTests(SiteMixin, TestCase):
         Verify that if a course run has both audit and verified seats, Verified seat is displayed
         on the course run edit page
         """
-        factories.SeatFactory(course_run=self.course_run, type=Seat.AUDIT)
+        factories.SeatFactory(course_run=self.course_run, type=CourseMode.AUDIT)
         self.edit_page_url = reverse('publisher:publisher_course_runs_edit', kwargs={'pk': self.course_run.id})
         response = self.client.get(self.edit_page_url)
         self.assertEqual(response.status_code, 200)
@@ -2983,7 +2983,7 @@ class CourseRunEditViewTests(SiteMixin, TestCase):
         data = {'image': ''}
         updated_dict = self._post_data(data, self.new_course, self.new_course_run)
 
-        updated_dict['type'] = Seat.PROFESSIONAL
+        updated_dict['type'] = CourseMode.PROFESSIONAL
         updated_dict['price'] = 10.00
 
         response = self.client.post(self.edit_page_url, updated_dict)
@@ -2997,7 +2997,7 @@ class CourseRunEditViewTests(SiteMixin, TestCase):
 
         course_run = CourseRun.objects.get(id=self.new_course_run.id)
 
-        self.assertEqual(course_run.seats.first().type, Seat.PROFESSIONAL)
+        self.assertEqual(course_run.seats.first().type, CourseMode.PROFESSIONAL)
         self.assertEqual(course_run.seats.first().price, 10)
 
         self.assertEqual(course_run.seats.first().history.all().count(), 1)
@@ -3206,7 +3206,7 @@ class CourseRunEditViewTests(SiteMixin, TestCase):
         response = self.client.get(self.edit_page_url)
         self.assertNotContains(response, '<div id="SeatPriceBlock" class="col col-6 hidden" style="display: block;">')
 
-    @ddt.data(Seat.PROFESSIONAL, Seat.VERIFIED)
+    @ddt.data(CourseMode.PROFESSIONAL, CourseMode.VERIFIED)
     def test_price_visible(self, seat_type):
         """
         Verify that price widget appear if the seat type other than audit.
@@ -3464,7 +3464,7 @@ class CreateRunFromDashboardViewTests(SiteMixin, TestCase):
             'start': (current_datetime + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S'),
             'end': (current_datetime + timedelta(days=60)).strftime('%Y-%m-%d %H:%M:%S'),
             'pacing_type': 'self_paced',
-            'type': Seat.VERIFIED,
+            'type': CourseMode.VERIFIED,
             'price': 450
         }
 
@@ -3497,7 +3497,7 @@ class CreateRunFromDashboardViewTests(SiteMixin, TestCase):
             target_status_code=200
         )
 
-        self.assertEqual(new_seat.type, Seat.VERIFIED)
+        self.assertEqual(new_seat.type, CourseMode.VERIFIED)
         self.assertEqual(new_seat.price, post_data['price'])
 
         # Verify that and email is sent for studio instance request to project coordinator.

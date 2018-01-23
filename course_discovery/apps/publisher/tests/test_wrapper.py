@@ -9,7 +9,7 @@ from course_discovery.apps.course_metadata.choices import CourseRunPacing
 from course_discovery.apps.course_metadata.tests.factories import (OrganizationFactory, PersonFactory,
                                                                    PersonSocialNetworkFactory, PositionFactory)
 from course_discovery.apps.publisher.choices import CourseRunStateChoices, PublisherUserRole
-from course_discovery.apps.publisher.models import Seat
+from course_discovery.apps.publisher.models import CourseMode
 from course_discovery.apps.publisher.tests import factories
 from course_discovery.apps.publisher.wrappers import CourseRunWrapper
 
@@ -54,11 +54,11 @@ class CourseRunWrapperTests(TestCase):
 
     @ddt.unpack
     @ddt.data(
-        ([], Seat.AUDIT),
-        ([Seat.AUDIT], Seat.AUDIT),
-        ([Seat.AUDIT, Seat.CREDIT, Seat.VERIFIED], Seat.CREDIT),
-        ([Seat.AUDIT, Seat.VERIFIED], Seat.VERIFIED),
-        ([Seat.PROFESSIONAL], Seat.PROFESSIONAL),
+        ([], CourseMode.AUDIT),
+        ([CourseMode.AUDIT], CourseMode.AUDIT),
+        ([CourseMode.AUDIT, CourseMode.CREDIT, CourseMode.VERIFIED], CourseMode.CREDIT),
+        ([CourseMode.AUDIT, CourseMode.VERIFIED], CourseMode.VERIFIED),
+        ([CourseMode.PROFESSIONAL], CourseMode.PROFESSIONAL),
     )
     def test_course_type_(self, seats_list, course_type):
         """ Verify that the wrapper return the course type according to the available seats."""
@@ -77,7 +77,7 @@ class CourseRunWrapperTests(TestCase):
         """ Verify that the wrapper return the seat price. """
         self.assertEqual(self.wrapped_course_run.seat_price, None)
 
-        seat = factories.SeatFactory(type=Seat.VERIFIED, course_run=self.course_run)
+        seat = factories.SeatFactory(type=CourseMode.VERIFIED, course_run=self.course_run)
         wrapped_course_run = CourseRunWrapper(self.course_run)
         self.assertEqual(wrapped_course_run.seat_price, seat.price)
 
@@ -85,7 +85,7 @@ class CourseRunWrapperTests(TestCase):
         """ Verify that the wrapper return the credit seat price. """
         self.assertEqual(self.wrapped_course_run.credit_seat_price, None)
 
-        seat = factories.SeatFactory(type=Seat.CREDIT, course_run=self.course_run)
+        seat = factories.SeatFactory(type=CourseMode.CREDIT, course_run=self.course_run)
         wrapped_course_run = CourseRunWrapper(self.course_run)
         self.assertEqual(wrapped_course_run.credit_seat_price, seat.credit_price)
 
@@ -93,7 +93,7 @@ class CourseRunWrapperTests(TestCase):
         """ Verify that the wrapper return the credit seat. """
         self.assertEqual(self.wrapped_course_run.credit_seat, None)
         seat = factories.SeatFactory(
-            type=Seat.CREDIT, course_run=self.course_run, credit_provider='ASU', credit_hours=9
+            type=CourseMode.CREDIT, course_run=self.course_run, credit_provider='ASU', credit_hours=9
         )
 
         wrapped_course_run = CourseRunWrapper(self.course_run)

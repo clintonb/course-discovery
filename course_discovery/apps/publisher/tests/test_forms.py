@@ -14,7 +14,7 @@ from course_discovery.apps.publisher.choices import CourseRunStateChoices, Publi
 from course_discovery.apps.publisher.forms import (
     CourseForm, CourseRunForm, CourseRunStateAdminForm, CourseStateAdminForm, PublisherUserCreationForm, SeatForm
 )
-from course_discovery.apps.publisher.models import Seat
+from course_discovery.apps.publisher.models import CourseModes, Seat
 from course_discovery.apps.publisher.tests.factories import (
     CourseFactory, CourseUserRoleFactory, OrganizationExtensionFactory, SeatFactory
 )
@@ -347,10 +347,10 @@ class PublisherCustomCourseFormTests(TestCase):
 @pytest.mark.django_db
 class TestSeatForm:
     @override_switch('publisher_create_audit_seats_for_verified_course_runs', active=True)
-    @pytest.mark.parametrize('seat_type', (Seat.NO_ID_PROFESSIONAL, Seat.PROFESSIONAL,))
+    @pytest.mark.parametrize('seat_type', (CourseMode.NO_ID_PROFESSIONAL, CourseMode.PROFESSIONAL,))
     def test_remove_audit_seat_for_professional_course_runs(self, seat_type):
         seat = SeatFactory(type=seat_type)
-        audit_seat = SeatFactory(type=Seat.AUDIT, course_run=seat.course_run)
+        audit_seat = SeatFactory(type=CourseMode.AUDIT, course_run=seat.course_run)
         form = SeatForm(instance=seat)
         form.save()
         assert list(seat.course_run.seats.all()) == [seat]
@@ -358,16 +358,16 @@ class TestSeatForm:
 
     @override_switch('publisher_create_audit_seats_for_verified_course_runs', active=True)
     def test_audit_only_seat_not_modified(self):
-        seat = SeatFactory(type=Seat.AUDIT)
+        seat = SeatFactory(type=CourseMode.AUDIT)
         form = SeatForm(instance=seat)
         form.save()
         assert list(seat.course_run.seats.all()) == [seat]
 
     @override_switch('publisher_create_audit_seats_for_verified_course_runs', active=True)
-    @pytest.mark.parametrize('seat_type', (Seat.CREDIT, Seat.VERIFIED,))
+    @pytest.mark.parametrize('seat_type', (CourseMode.CREDIT, CourseMode.VERIFIED,))
     def test_create_audit_seat_for_credit_and_verified_course_runs(self, seat_type):
         seat = SeatFactory(type=seat_type)
         form = SeatForm(instance=seat)
         form.save()
         assert seat.course_run.seats.count() == 2
-        assert seat.course_run.seats.filter(type=Seat.AUDIT, price=0).exists()
+        assert seat.course_run.seats.filter(type=CourseMode.AUDIT, price=0).exists()
