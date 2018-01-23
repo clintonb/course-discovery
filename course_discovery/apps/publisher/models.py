@@ -20,7 +20,7 @@ from taggit.managers import TaggableManager
 from course_discovery.apps.core.models import Currency, User
 from course_discovery.apps.course_metadata.choices import CourseRunPacing
 from course_discovery.apps.course_metadata.models import Course as DiscoveryCourse
-from course_discovery.apps.course_metadata.models import LevelType, Organization, Person, Subject
+from course_discovery.apps.course_metadata.models import LevelType, Organization, Person, SeatType, Subject
 from course_discovery.apps.course_metadata.utils import UploadToFieldNamePath
 from course_discovery.apps.ietf_language_tags.models import LanguageTag
 from course_discovery.apps.publisher import emails
@@ -84,6 +84,7 @@ class Course(TimeStampedModel, ChangedByMixin):
     keywords = TaggableManager(blank=True, verbose_name='keywords')
     faq = models.TextField(default=None, null=True, blank=True, verbose_name=_('FAQ'))
     video_link = models.URLField(default=None, null=True, blank=True, verbose_name=_('Video Link'))
+    version = models.IntegerField(null=True, blank=True, verbose_name=_('Workflow Version'))
 
     # temp fields for data migrations only.
     course_metadata_pk = models.PositiveIntegerField(null=True, blank=True, verbose_name=_('Course Metadata Course PK'))
@@ -483,6 +484,33 @@ class Seat(TimeStampedModel, ChangedByMixin):
             return deadline
 
         return None
+
+
+class CourseEntitlement(TimeStampedModel):
+    VERIFIED = 'verified'
+    PROFESSIONAL = 'professional'
+
+    SEAT_TYPE_CHOICES = (
+        (VERIFIED, _('Verified')),
+        (PROFESSIONAL, _('Professional'))
+    )
+
+    PRICE_FIELD_CONFIG = {
+        'decimal_places': 2,
+        'max_digits': 10,
+        'null': False,
+        'default': 0.00,
+    }
+
+    course = models.ForeignKey(Course, related_name='entitlements')
+    mode = models.ForeignKey(SeatType, related_name='publisher_entitlements')
+    price = models.DecimalField(**PRICE_FIELD_CONFIG)
+    currency = models.ForeignKey(Currency, default='USD', related_name='publisher_entitlements')
+
+    class Meta(object):
+        unique_together = (
+            ('course', 'mode')
+        )
 
 
 class UserAttributes(TimeStampedModel):
